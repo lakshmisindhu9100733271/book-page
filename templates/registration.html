@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<h1 style="text-align: center;">e-Book Store</h1>
+<style>
+  * {
+            background-color: rgb(136, 243, 87);
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            color: white;
+    }
+
+
+/* Add padding to containers */
+.container {
+  padding: 16px;
+}
+
+/* Full-width input fields */
+input[type=text] {
+  width: 100%;
+  padding: 15px;
+  margin: 5px 0 22px 0;
+  display: inline-block;
+  border: none;
+  color: black;
+  background: white;
+}
+.list{
+  width: 100%;
+  padding: 15px;
+  margin: 5px 0 22px 0;
+  background-color:white;
+}
+
+input[type=text]:focus, input[type=password]:focus {
+  background-color:white;
+  color: black;
+  outline: none;
+}
+
+/* Overwrite default styles of hr */
+hr {
+  border: 1px solid #f1f1f1;
+  margin-bottom: 25px;
+}
+
+/* Set a style for the submit button */
+.registerbtn {
+  background-color:tomato;
+  color: white;
+  padding: 16px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 20%;
+  opacity: 0.9;
+}
+
+.registerbtn:hover {
+  opacity: 1;
+}
+button {
+  background-color:tomato;
+  color: white;
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 10%;
+}
+
+button:hover {
+  opacity: 0.8;
+}
+.linkbutton {
+  width: auto;
+  padding: 10px 18px;
+  background-color: #f44336;
+}
+</style>
+</head>
+<body>
+<form action = "{{ url_for('register') }}" method = "POST">
+  <div class="container">
+    <h1 style="text-align: center;">Register</h1>
+    <p style="color: #f44336;text-align: center;">{{message}}</p>
+    <hr>
+
+    <label for="username"><b>User Name*</b></label>
+    <input type="text" placeholder="Enter Username" name="username" required>
+
+    <label for="psw"><b>Password*</b></label>
+    <input type="password" placeholder="Enter Password" name="password" required
+              title="Must contain at least one number and one uppercase
+              and lowercase letter, and at least 8 or more characters">
+    <label for="email"><b>Email</b></label>
+    <input type="text" placeholder="Enter email(optional)" name="email">
+    <div>
+      <label for="Gender"><b>Gender</b></label>
+      <div>
+        <input type="radio"  name="name" value="Male">
+        <label>Male</label>
+        <input type="radio"  name="name" value="Female">
+        <label>Female</label>
+    </div>
+    </div>
+    <hr>
+    <button type="submit" class="registerbtn">Register</button>
+  </div>
+</form>
+<p>Already have an account? <a href="login"><button class=".linkbutton">Login</button> </a></p>
+</body>
+</html>
