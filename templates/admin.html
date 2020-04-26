@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>admin page</title>
+        <h1 style="text-align: center;">Welcome to the ADMIN page!!</h1>
+        <style>
+            * {
+            background-color: rgb(136, 243, 87);
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            color: white;
+            }
+            table {
+                border: 2px solid black;
+                border-collapse: collapse;
+                width: 50%;
+                font-size: large;
+                font-weight: bold;
+            }
+            th {
+                /* text-size-adjust: 12;
+                text-indent: 1mm; */
+                background-color: lightgray;
+                font-size: large;
+                font-weight: bold;
+            }
+            td {
+                font-size: large;
+                font-weight: lighter;
+
+            }
+            th,td {
+                border: 1px solid black;
+                padding: 5px;
+            }
+            button {
+            background-color: tomato;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            }
+
+            button:hover {
+            opacity: 0.8;
+            }
+
+            .linkbutton {
+            width: auto;
+            padding: 10px 18px;
+            }
+        </style>
+    </head>
+    <body>
+        <div align=right>
+            <label>
+                <a href="register"><button type="button" class="linkbutton">Logout</button></a>
+            </label>
+
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>password</th>
+                    <th>date stramp</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for user in data %}
+                <tr>
+                    <td>{{user.username}}</td>
+                    <td>{{user.password}}</td>
+                    <td>{{user.time}}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>

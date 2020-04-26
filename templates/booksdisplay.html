@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>display page</title>
+        <style>
+            body {
+            /* Set "my-sec-counter" to 0 */
+            counter-reset: serial-num;
+            }
+
+            tbody tr::before {
+            /* Increment "my-sec-counter" by 1 */
+            counter-increment: serial-num;
+            content:counter(serial-num) ". ";
+            }
+            table {
+                border: 2px solid black;
+                border-collapse: collapse;
+                width: 50%;
+                font-size: large;
+                font-weight: bold;
+            }
+            th {
+                /* text-size-adjust: 12;
+                text-indent: 1mm; */
+                background-color: lightgray;
+                font-size: large;
+                font-weight: bold;
+            }
+            td {
+                font-size: large;
+                font-weight: lighter;
+
+            }
+            th,td {
+                border: 1px solid black;
+                padding: 5px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Books related to your search</h1>
+        <table>
+            <thead>
+                <tr>
+                    <th>S.No</th>
+                    <th>ISBN</th>
+                    <th>Book Title</th>
+                    <th>Author</th>
+                    <th>Year</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in books%}
+                    <tr>
+                        <td><a href=/bookpage/{{i.isbn}}>{{i.isbn}}</a></td>
+                        <td>{{i.title}}</td>
+                        <td>{{i.author}}</td>
+                        <td>{{i.year}}</td>
+                    </tr>
+                    {% endfor %}
+
+            </tbody>
+        </table>
+
+    </body>
+
+</html>

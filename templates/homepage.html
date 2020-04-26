@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>Home Page</title>
+        <h1 style="text-align: center;">e-Book Store</h1>
+        <style>
+            * {
+                background-color: rgb(136, 243, 87);
+                box-sizing: border-box;
+                font-family: Arial, Helvetica, sans-serif;
+                color: white;
+            }
+            .container {
+                padding: 16px;
+            }
+            /* Full-width input fields */
+            input[type=text] {
+                width: 30%;
+                padding: 15px;
+                margin: 5px 0 22px 0;
+                display: inline-block;
+                border: none;
+                color: black;
+                background: white;
+            }
+            .radio{
+                margin: 5px 0 22px 0;
+            }
+            button {
+                background-color: #4CAF50;
+                color: white;
+                padding: 15px 20px;
+                margin: 8px 0;
+                border: none;
+                cursor: pointer;
+                width: 10%;
+            }
+
+            button:hover {
+            opacity: 0.8;
+            }
+
+            .linkbutton {
+            width: auto;
+            padding: 10px 18px;
+            }
+            .alert {
+            width: 40%;
+            padding: 20px;
+            background-color: #a04b45;
+            color: white;
+            font-style: italic;
+            }
+            .alert.suggestion {background-color: #4CAF50;}
+            .closebtn {
+            margin-left: 15px;
+            color: white;
+            font-weight: bold;
+            float: right;
+            font-size: 22px;
+            line-height: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            background-color: #4CAF50;
+            }
+
+            .closebtn:hover {
+            color: black;
+            background-color: #4CAF50;
+            }
+
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div align=right>
+                <label>
+                    <a href="login"><button type="button" class="linkbutton">Logout</button></a>
+                </label>
+            </div>
+            <div>
+                {% if username %}
+                <h2>Welcome {{username}}</h2>
+                {%endif%}
+            </div>
+
+
+            <div align=center>
+                {% if message == "alert"%}
+                    <div class="alert">
+                        **Please check your spelling or try a different search term.
+                    </div>
+                    <br>
+                    <div class="alert suggestion">
+                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+                        You can search using keywords from the book's title, the name of an
+                        author of the book,or the book's ISBN.The ISBN is a 10 or 13 digit number
+                        that can be found near the barcode on the back cover.
+                </div>
+                {%endif%}
+
+                <form action="{{url_for('search')}}" method="POST">
+                    <div class="Searchbox">
+                        <input type="text" name="name" placeholder="Enter text here..." pattern="[a-zA-Z0-9\s]+"
+                        title = "minimum lenth is three characters. &#010 only letters and numbers allowed. &#010 eg: for title 'Fourteen Fearless.' &#010 for year '1980.' &#010 for isbn '375913750.'&#010 for author 'Susan Cooper.'"
+                        minlength="3" required>
+                        <button type="submit">Search</button>
+                    </div>
+                    <div class="radio" aria-required="true">
+                        <input type="radio" name="option" value="title"required>
+                        <label for="title">Title</label>
+                        <input type="radio" name="option" value="year" required>
+                        <label for="Year">Year</label>
+                        <input type="radio" name="option" value="isbn" required>
+                        <label for="isbn">Isbn</label>
+                        <input type="radio" name="option" value="author" required>
+                        <label for="author">Author</label>
+                    </div>
+
+                </form>
+            </div>
+
+        </div>
+
+    </body>
+
+
+</html>
