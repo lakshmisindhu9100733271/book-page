@@ -5,8 +5,8 @@ from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_sqlalchemy import SQLAlchemy
-from registerdb import db,Users
-
+from registerdb import *
+from importdb import Books,db
 
 app = Flask(__name__)
 
@@ -80,12 +80,45 @@ def admin():
         return redirect(url_for("register"))
     data = Users.query.order_by(Users.time.desc()).all()
     return render_template("admin.html",data=data)
+
 @app.route("/home")
 def home():
     if session["email"] is None:
         return redirect(url_for("register"))
     message = session["email"]
     return render_template("homepage.html",username=message)
+
+@app.route("/search",methods=["POST","GET"])
+def search():
+    if session["email"] is None:
+        return  redirect(url_for("login"))
+    if request.method == "POST":
+        text = request.form.get("name")
+        option = request.form.get("option")
+        print(text)
+        if option == "title":
+            print(option)
+            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("title") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+        elif option == "isbn":
+            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("isbn") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+        elif option == "author":
+            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("author") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+        else:
+
+            # if text.isnumeric():
+            #     message = "Sorry wrong input.Please enter correct year"
+            #     return render_template("homepage.html",message = message)
+            #books=Books.query.filter(Books.year.like(text)).all()
+            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("year") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+
+        print(books)
+        books.sort(key=lambda x: x.year, reverse=True)
+        if len(books) == 0:
+            message = "Sorry no books are available on your input"
+            return render_template("homepage.html",message = "alert")
+        else:
+            return render_template("booksdisplay.html",books=books)
+    return redirect(url_for("home"))
 
 @app.route("/logout")
 def logout():
