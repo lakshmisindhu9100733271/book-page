@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css">
+
+    <style>
+        body{
+            margin:0;
+            padding:0;
+            background:yellowgreen;
+        }
+
+        pre{
+            color: white;
+            font-family: sans-serif;
+        }
+        h2{
+            color: white;
+            text-align: center;
+            font-family: sans-serif;
+            margin-top:25px;
+        }
+        .tab1 {
+            tab-size: 2;
+        }
+        table{
+            text-align: center;
+        }
+        p{
+            color: white;
+            font-size: larger;
+
+        }
+
+        html{
+            margin-left: 10%;
+            margin-right: 10%;
+        }
+       
+
+    </style>
+<head>
+    <title>Bookpage</title>
+</head>
+<body>
+    <h2><u>Book Review Page</u></h2>
+    <div align=right>
+        <label>
+            <a href="/login"><button type="button" class="linkbutton">Logout</button></a>
+        </label>
+    </div>
+    <div>
+        {% if username %}
+        <h2>Welcome {{username}}</h2>
+        {%endif%}
+    </div>
+    
+    {%if book%}
+      <table class="table">
+        <thead class="thead-light">
+            <img src = "http://covers.openlibrary.org/b/isbn/{{book.isbn}}.jpg" alt = {{book.title}}/> 
+            <tr>
+                <th scope="col" class="bg-warning">Fields</th>
+                <th scope="col">Details</th>
+            </tr>
+
+            <tr>
+                <td class="bg-warning">ISBN No.</td>
+                <td class="table-light">{{book.isbn}}</td>
+                </tr>
+                <tr>
+                    <td class="bg-warning">Title</td>
+                    <td class="table-light">{{book.title}}</td>
+                </tr>
+                <tr>
+                    <td class="bg-warning">Author</td>
+                    <td class="table-light">{{book.author}}</td>
+                </tr>
+                <tr>
+                    <td class="bg-warning">Publishing Year</td>
+                    <td class="table-light">{{book.year}}</td>
+                </tr>
+
+            </tr>
+        </tbody>
+      </table>
+      {%endif%}
+      <div align=right>
+        <label>
+            <a href="/review/{{book.isbn}}"><button type="button" class="linkbutton">Review</button></a>
+        </label>
+    </div>
+    <br><br><br>
+    <h2>Book Reviews Here</h2>
+    {%for review in details%}
+        <p>Email : {{review.email}}</p>
+        <p>Star rating: {{review.rating}} </p>
+        <p>review : {{review.review}} </p>
+        <br><br>
+    {%endfor%}
+</body>
+</html>

@@ -5,8 +5,11 @@ from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_sqlalchemy import SQLAlchemy
-from registerdb import db,Users
-
+from registerdb import Users, db
+from importdb import Books
+from details import Detail
+from operator import and_
+from flask.helpers import flash
 
 app = Flask(__name__)
 
@@ -80,12 +83,45 @@ def admin():
         return redirect(url_for("register"))
     data = Users.query.order_by(Users.time.desc()).all()
     return render_template("admin.html",data=data)
+
 @app.route("/home")
 def home():
     if session["email"] is None:
         return redirect(url_for("register"))
     message = session["email"]
     return render_template("homepage.html",username=message)
+
+@app.route("/search",methods=["POST","GET"])
+def search():
+    if session["email"] is None:
+        return  redirect(url_for("login"))
+    if request.method == "POST":
+        text = request.form.get("name")
+        option = request.form.get("option")
+        print(text)
+        if option == "title":
+            print(option)
+            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("title") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+        elif option == "isbn":
+            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("isbn") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+        elif option == "author":
+            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("author") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+        else:
+
+            # if text.isnumeric():
+            #     message = "Sorry wrong input.Please enter correct year"
+            #     return render_template("homepage.html",message = message)
+            #books=Books.query.filter(Books.year.like(text)).all()
+            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("year") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+
+        print(books)
+        books.sort(key=lambda x: x.year, reverse=True)
+        if len(books) == 0:
+            message = "Sorry no books are available on your input"
+            return render_template("homepage.html",message = "alert")
+        else:
+            return render_template("booksdisplay.html",books=books)
+    return redirect(url_for("home"))
 
 @app.route("/logout")
 def logout():
@@ -94,3 +130,37 @@ def logout():
     session["email"] = None
     message = "You have sucessfully logged out"
     return redirect(url_for("register"))
+@app.route("/review/<isbn>",methods=["POST","GET"])
+def review(isbn):
+    if (request.method == "POST"):
+        print('entered')
+        rate = request.form['star']
+        print(rate)
+        rev = request.form['comment']
+        print(rev)
+        data=Detail.query.filter(and_(Detail.isbn==isbn, Detail.email==session["email"])).first()
+        print(data)
+        if data is None:
+            print ('ok')
+            rcon = Detail(isbn = isbn,email=session['email'],rating=rate,review=rev)
+            db.session.add(rcon)
+            db.session.commit()
+            return redirect(url_for("bookpage",isbn=isbn))
+        else:
+            flash("You are have already given the review")
+            return redirect(url_for("bookpage",isbn=isbn))
+    return render_template("review.html", isbn=isbn)
+
+@app.route("/bookpage/<isbn>",methods=["POST","GET"])
+def bookpage(isbn): 
+    print(isbn)
+    if  (request.method == "GET"):  
+        num = Books.query.get(isbn)
+        search = "%{}%".format(isbn)
+        rev = Detail.query.filter(Detail.isbn.like(search))
+        username=session["email"]
+        if num is None:
+            message="no book is found"
+            return render_template("bookpage.html",meassage=message)
+        return render_template("bookpage.html",details= rev, book = num,username=username)
+    return render_template("bookpage.html")

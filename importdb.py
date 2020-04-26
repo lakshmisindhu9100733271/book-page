@@ -22,7 +22,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-class Register(db.Model) :
+class Books(db.Model) :
     __tablename__ = "Books"
     isbn = db.Column(db.String, primary_key = True)
     title = db.Column(db.String, nullable = False)
