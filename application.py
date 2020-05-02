@@ -5,8 +5,8 @@ from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_sqlalchemy import SQLAlchemy
-from registerdb import db,Users
-
+from registerdb import Users,db
+from importdb import Books,db
 
 app = Flask(__name__)
 
@@ -67,7 +67,7 @@ def login():
         if user != None:
             if password == user.password:
                 session["email"] = username
-                return redirect(url_for("home"))
+                return redirect(url_for("home",message="no error"))
             else:
                 message = "Wrong Password please try again"
                 return render_template("login.html",message=message)
@@ -80,12 +80,39 @@ def admin():
         return redirect(url_for("register"))
     data = Users.query.order_by(Users.time.desc()).all()
     return render_template("admin.html",data=data)
-@app.route("/home")
-def home():
+
+@app.route("/home/<message>")
+def home(message):
+    print(message)
     if session["email"] is None:
         return redirect(url_for("register"))
-    message = session["email"]
-    return render_template("homepage.html",username=message)
+    uname = session["email"]
+    return render_template("homepage.html",username=uname,message=message)
+
+@app.route("/search",methods=["POST","GET"])
+def search():
+    if session["email"] is None:
+        return  redirect(url_for("login"))
+    if request.method == "POST":
+        text = request.form.get("name")
+        option = request.form.get("option")
+        if len(text) == 0 or not text.isalnum():
+            return redirect(url_for("home",message="alert"))
+
+          # if text.isnumeric():
+            #     message = "Sorry wrong input.Please enter correct year"
+            #     return render_template("homepage.html",message = message)
+            #books=Books.query.filter(Books.year.like(text)).all()
+
+        books =  Books.query.order_by(Books.year.desc()).filter(getattr(Books, option).ilike('%'+text+'%')).all()
+
+        print(books)
+        # books.sort(key=lambda x: x.year, reverse=True)
+        if len(books) == 0:
+            return redirect(url_for("home",message="alert"))
+        else:
+            return render_template("booksdisplay.html",books=books)
+    return redirect(url_for("home"))
 
 @app.route("/logout")
 def logout():
