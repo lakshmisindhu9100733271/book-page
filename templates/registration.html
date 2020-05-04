@@ -80,36 +80,90 @@ button:hover {
   background-color: #f44336;
 }
 </style>
+<script>
+  function check() {
+
+    const username = document.querySelector('#username').value;
+    if(username.length === 0 || !(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/).test(username)) {
+      alert("Please enter valid email address as username");
+      return false;
+    }
+    const password = document.querySelector("#password").value;
+    errormsg = "Must contain at least one number and one uppercase and lowercase letter,special character and at least 8 or more characters"
+    document.querySelector('#error').innerHTML = errormsg;
+    if(password.length === 0) {
+      alert("please enter the password")
+      return false;
+    }
+    if(password.length < 8) {
+      alert("password must be eight characters")
+      return false;
+    }
+    if(!/[a-z]/.test(password)) {
+      alert("password must contain one lowercase character")
+      return false;
+
+    }
+    if(!/[A-Z]/.test(password)) {
+      alert("password must contain one uppercase character")
+      return false;
+    }
+    if(!/[0-9]/.test(password)) {
+      alert("password must contain one number")
+      return false;
+    }
+    if(!/[!@#\$%\^\&*\)\(+=._-]/.test(password)) {
+      alert("password must contain one special character !@#$%^&*")
+      return false;
+    }
+    document.querySelector('#error').innerHTML = '';
+    const request = new XMLHttpRequest();
+    const gender = document.querySelector('.gender').value;
+    request.open('POST','/register');
+    //callback function for when request completes
+    request.onload = ()=> {
+      //extract json data from request
+      const data  = JSON.parse(request.responseText);
+      console.log(data.success);
+      if(data.success) {
+        alert("successfully registered");
+      }
+      else {
+        alert("registration failed");
+      }
+    }
+    const data = new FormData();
+    data.append('username',username);
+    data.append('password',password);
+    data.append('gender',gender);
+    request.send(data);
+  }
+</script>
 </head>
 <body>
-<form action = "{{ url_for('register') }}" method = "POST">
   <div class="container">
     <h1 style="text-align: center;">Register</h1>
-    <p style="color: #f44336;text-align: center;">{{message}}</p>
     <hr>
 
     <label for="username"><b>User Name*</b></label>
-    <input type="text" placeholder="Enter Username" name="username" required>
-
+    <input id = 'username' type="text" placeholder="Enter Email address eg(abc@gmail.com)" name="username" required>
+    <div id = "error" style="color: #f44336;"></div>
     <label for="psw"><b>Password*</b></label>
-    <input type="password" placeholder="Enter Password" name="password" required
+    <input id = 'password' type="password" placeholder="Enter Password" name="password" required
               title="Must contain at least one number and one uppercase
               and lowercase letter, and at least 8 or more characters">
-    <label for="email"><b>Email</b></label>
-    <input type="text" placeholder="Enter email(optional)" name="email">
     <div>
       <label for="Gender"><b>Gender</b></label>
       <div>
-        <input type="radio"  name="name" value="Male">
+        <input class='gender' type="radio"  name="gender" value="Male">
         <label>Male</label>
-        <input type="radio"  name="name" value="Female">
+        <input class='gender' type="radio"  name="gender" value="Female">
         <label>Female</label>
     </div>
     </div>
     <hr>
-    <button type="submit" class="registerbtn">Register</button>
+    <button type="submit" class="registerbtn" onclick="check()">Register</button>
   </div>
-</form>
 <p>Already have an account? <a href="login"><button class=".linkbutton">Login</button> </a></p>
 </body>
 </html>
