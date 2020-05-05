@@ -1,129 +1,145 @@
 <!DOCTYPE html>
 <html>
     <head>
+        <title>Page Title</title>
+        <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <title>Home Page</title>
-        <h1 style="text-align: center;">e-Book Store</h1>
-        <style>
+        <link rel ="stylesheet" href = "{{url_for('static', filename='homepage.css')}}" />
+        <!-- <link rel ="stylesheet" href = 'homepage.css'/> -->
+        <!-- <style>
             * {
-                background-color: rgb(136, 243, 87);
-                box-sizing: border-box;
-                font-family: Arial, Helvetica, sans-serif;
-                color: white;
+            box-sizing: border-box;
+            font-family: Arial, Helvetica, sans-serif;
+            color:black;
             }
-            .container {
-                padding: 16px;
-            }
-            /* Full-width input fields */
-            input[type=text] {
-                width: 30%;
-                padding: 15px;
-                margin: 5px 0 22px 0;
-                display: inline-block;
-                border: none;
-                color: black;
-                background: white;
-            }
-            .radio{
-                margin: 5px 0 22px 0;
-            }
-            button {
-                background-color: #4CAF50;
-                color: white;
-                padding: 15px 20px;
-                margin: 8px 0;
-                border: none;
-                cursor: pointer;
-                width: 10%;
-            }
+        </style> -->
 
-            button:hover {
-            opacity: 0.8;
-            }
+        <script>
+            // document.addEventListener('DOMContentLoaded',function() {
+            //     document.querySelector('#submit').onclick = ()=>{
+            //         // event.preventDefault();
+            //         const request = new XMLHttpRequest();
+            //         request.open('POST','/api/search');
+            //         request.onload = ()=>{
+            //             const data  = JSON.parse(request.responseText);
+            //         }
+            //         const name = document.querySelector('#searchdata').value;
+            //         const option = ocument.querySelector('.radio').value;
+            //         const searchData = new FormData();
+            //         searchData.append('name', name);
+            //         searchData.append('option',option);
+            //         request.send(searchData);
+            //         //stop form from submitting
+            //         return false;
+            //     }
+            // })
+            function searchresults() {
+                    document.querySelector('#bookslist').innerHTML = '';
+                    document.querySelector('#error').innerHTML = ' ';
+                    document.querySelector('#searchresults').innerHTML = ' ';
 
-            .linkbutton {
-            width: auto;
-            padding: 10px 18px;
-            }
-            .alert {
-            width: 40%;
-            padding: 20px;
-            background-color: #a04b45;
-            color: white;
-            font-style: italic;
-            }
-            .alert.suggestion {background-color: #4CAF50;}
-            .closebtn {
-            margin-left: 15px;
-            color: white;
-            font-weight: bold;
-            float: right;
-            font-size: 22px;
-            line-height: 20px;
-            cursor: pointer;
-            transition: 0.3s;
-            background-color: #4CAF50;
-            }
+                    const name = document.querySelector('#searchdata').value;
+                    var opt = '';
+                    if(name.length < 3) {
+                        alert("please enter minimum three characters")
+                        return false;
+                    }
+                    var count = 0;
+                    document.querySelectorAll('.radio-opt').forEach(function(name){
+                        if(name.checked == true) {
+                            opt = name.value;
+                            count = 1;
+                        }
+                    })
+                    if(count == 0) {
+                        alert('please select any one field')
+                        return false;
+                    }
+                    alert(opt)
+                    const request = new XMLHttpRequest();
+                    request.open('POST','/api/search');
+                    request.onload = ()=>{
+                        const data  = JSON.parse(request.responseText);
+                        if(data.notfound) {
+                            error_msg = "No books found. Please check your spelling or try a different search term."
+                            document.querySelector('#error').innerHTML = error_msg;
+                            return false;
+                        }else if(data.success){
+                            const books_list = data.books;
+                            alert("success")
+                            let msg = 'Books related to your search'
+                            document.querySelector('#searchresults').innerHTML = msg
+                            for(let i = 0; i < books_list.length;i++) {
+                                const li = document.createElement('li');
+                                // var x = document.createElement("A");
+                                // var t = document.createTextNode(books_list[i]);
+                                // x.setAttribute("href", "");
+                                // x.appendChild(t);
+                                // li.innerHTML = x;
+                                // li.innerHTML = "<a href='"+ books_list[i] +"' >"+ books_list[i] +"</a>";
+                                li.innerHTML = "<li>" + books_list[i][0] + " <button onclick = 'bookdisplay(this)' id = "+ books_list[i][1] + ">View Book</button></li>";
+                                document.querySelector('#bookslist').append(li);
+                            }
 
-            .closebtn:hover {
-            color: black;
-            background-color: #4CAF50;
-            }
+                        }
 
-        </style>
+                    }
+                    const searchData = new FormData();
+                    searchData.append('name', name);
+                    searchData.append('option',opt);
+                    request.send(searchData);
+                    //stop form from submitting
+                    return false;
+                }
+                function bookdisplay(button) {
+                    alert("hai")
+                    alert(button.id)
+                }
+        </script>
     </head>
-    <body>
-        <div class="container">
-            <div align=right>
-                <label>
-                    <a href="logout"><button type="button" class="linkbutton">Logout</button></a>
-                </label>
-            </div>
-            <div>
-                {% if username %}
-                <h2>Welcome {{username}}</h2>
-                {%endif%}
-            </div>
 
 
-            <div align=center>
-                {% if message == "alert"%}
-                    <div class="alert">
-                        **Please check your spelling or try a different search term.
-                    </div>
-                    <br>
-                    <div class="alert suggestion">
-                        <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
-                        You can search using keywords from the book's title, the name of an
-                        author of the book,or the book's ISBN.The ISBN is a 10 or 13 digit number
-                        that can be found near the barcode on the back cover.
-                </div>
-                {%endif%}
 
-                <form action="{{url_for('search')}}" method="POST">
-                    <div class="Searchbox">
-                        <input type="text" name="name" placeholder="Enter text here..." pattern="[a-zA-Z0-9\s]+"
-                        title = "minimum lenth is three characters. &#010 only letters and numbers allowed. &#010 eg: for title 'Fourteen Fearless.' &#010 for year '1980.' &#010 for isbn '375913750.'&#010 for author 'Susan Cooper.'"
-                        minlength="3" required>
-                        <button type="submit">Search</button>
-                    </div>
-                    <div class="radio" aria-required="true">
-                        <input type="radio" name="option" value="title"required>
-                        <label for="title">Title</label>
-                        <input type="radio" name="option" value="year" required>
-                        <label for="Year">Year</label>
-                        <input type="radio" name="option" value="isbn" required>
-                        <label for="isbn">Isbn</label>
-                        <input type="radio" name="option" value="author" required>
-                        <label for="author">Author</label>
-                    </div>
 
-                </form>
-            </div>
-
+<body>
+<div class='container'>
+    <h1 style="text-align: center;">e-Book Review</h1>
+    <div align=right>
+        <label>
+            <a href="logout"><button type="button" class="linkbutton">Logout</button></a>
+        </label>
+    </div>
+    <div>
+        {% if username %}
+        <h2>Welcome {{username}}</h2>
+        {%endif%}
+    </div>
+    <div class="Searchbox">
+        <div id ='error'></div>
+        <input id ='searchdata' type="text" name="name" placeholder="Enter text here..."required>
+        <button type="submit" onclick="searchresults()">Search</button>
+        <div class='radio' name='radio'>
+            <input class="radio-opt" type="radio" name="option" value="title">
+            <label>Title</label>
+            <input class="radio-opt" type="radio" name="option" value="year">
+            <label>Year</label>
+            <input class="radio-opt" type="radio" name="option" value="isbn">
+            <label>Isbn</label>
+            <input class="radio-opt" type="radio" name="option" value="author">
+            <label>Author</label>
         </div>
+    </div>
+    <div class="row">
+        <div class="side">
+          <h2 id ='searchresults'></h2>
+          <ul id ='bookslist'>
 
-    </body>
-
-
+          </ul>
+        </div>
+        <div class="main">
+          <h2>Book display</h2>
+        </div>
+      </div>
+</div>
+</body>
 </html>

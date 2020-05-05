@@ -1,12 +1,13 @@
 import os
 
-from flask import Flask, session,render_template,request,session,redirect,url_for
+from flask import Flask, session,render_template,request,session,redirect,url_for,jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_sqlalchemy import SQLAlchemy
 from registerdb import Users,db
 from importdb import Books,db
+import json
 
 app = Flask(__name__)
 
@@ -37,24 +38,21 @@ def index():
 
 @app.route("/register", methods=["POST","GET"])
 def register():
-    if request.method == "POST":
+    if request.method == 'POST':
+        print('hai')
         username = request.form.get("username")
         password = request.form.get("password")
-        email = request.form.get("email")
-        gender = request.form.get("name")
-        new_user=Users(username = username, password = password, email = email, gender = gender)
+        gender = request.form.get("gender")
+        new_user=Users(username = username, password = password, email = "1234", gender = gender)
         try:
             db.session.add(new_user)
             db.session.commit()
-            print(username, password, email, gender)
-            message = "successfully registered"
-            return render_template("success.html",message = message)
+            print(username, password,gender)
+            return jsonify({"success":True})
         except:
-            msg = "sorry your credentials are wrong. please try again"
-            return render_template("registration.html",message = msg)
-    msg = "Please fill in this form to create an account."
-    return render_template("registration.html",message = msg)
+            return jsonify({"success":False})
 
+    return render_template('registration.html')
 @app.route("/login",methods=["POST","GET"])
 def login():
     if request.method == "POST":
@@ -67,7 +65,7 @@ def login():
         if user != None:
             if password == user.password:
                 session["email"] = username
-                return redirect(url_for("home",message="no error"))
+                return redirect(url_for("home"))
             else:
                 message = "Wrong Password please try again"
                 return render_template("login.html",message=message)
@@ -81,37 +79,27 @@ def admin():
     data = Users.query.order_by(Users.time.desc()).all()
     return render_template("admin.html",data=data)
 
-@app.route("/home/<message>")
-def home(message):
-    print(message)
+@app.route("/home")
+def home():
     if session["email"] is None:
         return redirect(url_for("register"))
     uname = session["email"]
-    return render_template("homepage.html",username=uname,message=message)
+    return render_template("homepage.html",username=uname)
 
-@app.route("/search",methods=["POST","GET"])
+@app.route("/api/search",methods=["POST","GET"])
 def search():
     if session["email"] is None:
         return  redirect(url_for("login"))
     if request.method == "POST":
         text = request.form.get("name")
         option = request.form.get("option")
-        if len(text) == 0 or not text.isalnum():
-            return redirect(url_for("home",message="alert"))
-
-          # if text.isnumeric():
-            #     message = "Sorry wrong input.Please enter correct year"
-            #     return render_template("homepage.html",message = message)
-            #books=Books.query.filter(Books.year.like(text)).all()
-
-        books =  Books.query.order_by(Books.year.desc()).filter(getattr(Books, option).ilike('%'+text+'%')).all()
-
-        print(books)
-        # books.sort(key=lambda x: x.year, reverse=True)
-        if len(books) == 0:
-            return redirect(url_for("home",message="alert"))
+        books_list =  db.session.query(Books.title,Books.isbn).order_by(Books.year.desc()).filter(getattr(Books, option).ilike('%'+text+'%')).all()
+        # books_list = [value for value, in books]
+        print(books_list)
+        if len(books_list) == 0:
+            return jsonify({'success':True,'notfound':True})
         else:
-            return render_template("booksdisplay.html",books=books)
+            return jsonify({'success':True,'notfound':False, 'books':books_list})
     return redirect(url_for("home"))
 
 @app.route("/logout")
