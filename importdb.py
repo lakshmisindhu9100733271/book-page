@@ -22,8 +22,8 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-class Books(db.Model) :
-    __tablename__ = "Books"
+class books(db.Model) :
+    __tablename__ = "books"
     isbn = db.Column(db.String, primary_key = True)
     title = db.Column(db.String, nullable = False)
     author = db.Column(db.String, nullable = False)
@@ -34,7 +34,7 @@ def main():
     f = open("books.csv")
     reader = csv.reader(f)
     for isbn, title, author, year in reader:
-        book = Books(isbn=isbn, title=title, author=author,year=year)
+        book = books(isbn=isbn, title=title, author=author,year=year)
         db.session.add(book)
     db.session.commit()
 
