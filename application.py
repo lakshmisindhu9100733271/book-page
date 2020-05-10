@@ -6,8 +6,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_sqlalchemy import SQLAlchemy
 from registerdb import Users,db
-from importdb import Books,db
+from importdb import books,db
+from details import Detail,db
 import json
+from operator import and_
 
 app = Flask(__name__)
 
@@ -43,7 +45,7 @@ def register():
         username = request.form.get("username")
         password = request.form.get("password")
         gender = request.form.get("gender")
-        new_user=Users(username = username, password = password, email = "1234", gender = gender)
+        new_user=Users(username = username, password = password, gender = gender)
         try:
             db.session.add(new_user)
             db.session.commit()
@@ -93,7 +95,7 @@ def search():
     if request.method == "POST":
         text = request.form.get("name")
         option = request.form.get("option")
-        books_list =  db.session.query(Books.title,Books.isbn).order_by(Books.year.desc()).filter(getattr(Books, option).ilike('%'+text+'%')).all()
+        books_list =  db.session.query(books.title,books.isbn).order_by(books.year.desc()).filter(getattr(books, option).ilike('%'+text+'%')).all()
         # books_list = [value for value, in books]
         print(books_list)
         if len(books_list) == 0:
@@ -102,10 +104,59 @@ def search():
             return jsonify({'success':True,'notfound':False, 'books':books_list})
     return redirect(url_for("home"))
 
+@app.route('/api/bookdetails',methods=['POST'])
+def bookdetails():
+    num = request.form.get('isbn')
+    search = "%{}%".format(num)
+    print(search)
+    rev = books.query.filter(books.isbn.like(search)).all()
+    bookdetails = {
+        'isbn':rev[0].isbn,
+        'title':rev[0].title,
+        'year':rev[0].year,
+        'author':rev[0].author
+    }
+    return jsonify({'success':True,'bookdetail':bookdetails})
+
+@app.route('/api/submitreview',methods=['POST'])
+def submit_review():
+    num = request.form.get('isbn')
+    rating = request.form.get('rating')
+    comment = request.form.get('comment')
+    print("isbn",num)
+    print('rating',rating)
+    print('commnet',comment)
+    data=Detail.query.filter(and_(Detail.isbn==num, Detail.email==session["email"])).first()
+    print('data',data)
+    if data != None and rating is None :
+        print('unsucessful1')
+        reviewdetails = {
+            'user':data.email,
+            'isbn':data.isbn,
+            'rating':data.rating,
+            'review':data.review,
+        }
+        return jsonify({'review':True,'getreview':reviewdetails})
+
+    elif data is None and rating is None:
+        print('unsucessful2')
+        return jsonify({'review':False})
+    else:
+        rcon = Detail(isbn = num,email=session['email'],rating=rating,review=comment)
+        db.session.add(rcon)
+        db.session.commit()
+        data=Detail.query.filter(and_(Detail.isbn==num, Detail.email==session["email"])).first()
+        reviewdetails = {
+                'user':data.email,
+                'isbn':data.isbn,
+                'rating':data.rating,
+                'review':data.review,
+        }
+        return jsonify({'review':True,'getreview':reviewdetails})
+
+
 @app.route("/logout")
 def logout():
-    if not session["Admin"] is None:
-        session["Admin"] = None
     session["email"] = None
     message = "You have sucessfully logged out"
     return redirect(url_for("register"))

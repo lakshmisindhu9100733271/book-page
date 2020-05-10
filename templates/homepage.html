@@ -4,15 +4,37 @@
         <title>Page Title</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-        <link rel ="stylesheet" href = "{{url_for('static', filename='homepage.css')}}" />
+        <link rel ="stylesheet" href = "{{url_for('static',filename='homepage.css')}}" />
+        <!-- <link rel ="stylesheet" href = "{{url_for('static',filename='popup.css')}}" /> -->
         <!-- <link rel ="stylesheet" href = 'homepage.css'/> -->
-        <!-- <style>
-            * {
-            box-sizing: border-box;
-            font-family: Arial, Helvetica, sans-serif;
-            color:black;
+        <style>
+             .side {
+            flex: 50%;
+            padding: 10px;
+            padding-left: 50px;
+            background-origin: padding-box;
+            background-color: blue;
             }
-        </style> -->
+
+            /* Main column */
+            .main {
+            flex: 50%;
+            padding: 20px;
+            }
+            button {
+                background-color: #4CAF50;
+                color: white;
+                padding: 15px 20px;
+                margin: 8px 0;
+                border: none;
+                cursor: pointer;
+                width: 10%;
+            }
+            .form-container{
+                display: none;
+            }
+
+        </style>
 
         <script>
             // document.addEventListener('DOMContentLoaded',function() {
@@ -37,6 +59,8 @@
                     document.querySelector('#bookslist').innerHTML = '';
                     document.querySelector('#error').innerHTML = ' ';
                     document.querySelector('#searchresults').innerHTML = ' ';
+                    document.querySelector('#searchresults').innerHTML = '';
+
 
                     const name = document.querySelector('#searchdata').value;
                     var opt = '';
@@ -55,7 +79,7 @@
                         alert('please select any one field')
                         return false;
                     }
-                    alert(opt)
+                    alert(`Dear User! You opted ${opt}`)
                     const request = new XMLHttpRequest();
                     request.open('POST','/api/search');
                     request.onload = ()=>{
@@ -82,6 +106,8 @@
                             }
 
                         }
+                        document.title = 'SearchResults'
+                        history.pushState({'title':'searchResults','text':data},'SearchResults','SearchResults')
 
                     }
                     const searchData = new FormData();
@@ -92,8 +118,90 @@
                     return false;
                 }
                 function bookdisplay(button) {
-                    alert("hai")
+                    document.querySelector('#bookdetails').innerHTML = ''
+                    document.querySelector('#bookdisplay').innerHTML = ''
+                    const request = new XMLHttpRequest();
+                    request.open('POST','/api/bookdetails');
                     alert(button.id)
+                    const isbn = button.id;
+                    request.onload = ()=> {
+                        const data  = JSON.parse(request.responseText);
+                        if(data.success) {
+                            let msg = 'Your book details are'
+                            document.querySelector('#bookdisplay').innerHTML = msg
+                            const bookdetails = data.bookdetail;
+                            alert('success')
+                            for(let key in bookdetails) {
+                                const li = document.createElement('li');
+                                li.innerHTML = "<li>"+key+" : "+bookdetails[key]+ " </li>";
+                                document.querySelector('#bookdetails').append(li);
+                            }
+                        }
+                        const li = document.createElement('li');
+                        li.className = 'reviewbutton'
+                        li.innerHTML = "<li><button onclick = 'checkreview(this)' id = "+ isbn + ">Book Review</button></li>"
+                        document.querySelector('#bookdetails').append(li);
+                    }
+
+                    const searchData = new FormData();
+                    searchData.append('isbn', isbn);
+                    request.send(searchData)
+                }
+                function checkreview(button) {
+                    alert('checkreview')
+                    const isbn = button.id;
+                    const request = new XMLHttpRequest();
+                    request.open('POST','/api/submitreview');
+                    request.onload = ()=> {
+                        const data  = JSON.parse(request.responseText);
+                        if(data.review) {
+                            alert("you already submitted the review")
+                            document.querySelector('.reviewbutton').innerHTML = '<p>your review is:'+data.getreview['review']+'</p> <p>your rating:'+data.getreview['rating']+'</p>';
+
+                        }
+                        else {
+                            openForm(isbn)
+                        }
+                    }
+                    const searchData = new FormData();
+                    searchData.append('isbn', isbn);
+                    request.send(searchData)
+                }
+                function openForm(isbn) {
+                    alert('openform')
+                    document.querySelector('.form-container').style.display = "block";
+                    document.querySelector('#revsubbtn').onclick = function(){
+                        var comment = document.querySelector('#validationTextarea').value;
+                        var rating = '';
+                        document.querySelectorAll("input[name='star']").forEach(function(name){
+                            if(name.checked == true) {
+                                    rating = name.value;
+                            }
+                        })
+                        document.querySelector('.form-container').style.display = "none";
+                        bookreview(isbn,comment,rating)
+                    }
+                }
+                function bookreview(isbn,comment,rating){
+                    alert('bookreview')
+                    alert(isbn)
+                    alert(comment)
+                    alert(rating)
+                    const request = new XMLHttpRequest();
+                    request.open('POST','/api/submitreview');
+                    request.onload = ()=> {
+                        const data  = JSON.parse(request.responseText);
+                        if(data.review) {
+                            alert('your review submitted successfully')
+                            document.querySelector('.reviewbutton').innerHTML = '<p>your review is:'+data.getreview['review']+'</p> <p>your rating:'+data.getreview['rating']+'</p>';
+                        }
+                    }
+
+                    const searchData = new FormData();
+                    searchData.append('isbn', isbn);
+                    searchData.append('comment',comment);
+                    searchData.append('rating',rating);
+                    request.send(searchData)
                 }
         </script>
     </head>
@@ -137,9 +245,36 @@
           </ul>
         </div>
         <div class="main">
-          <h2>Book display</h2>
+          <h2 id='bookdisplay'></h2>
+          <ul id='bookdetails'>
+          </ul>
+
+          <div class="form-container">
+            <h2><pre class="tab1">Post your Rating: </pre></h2>
+            <div class="stars">
+                <input class="star star-5" id="star-5" value=5 type="radio" name="star"/>
+                <label class="star star-5" for="star-5"></label>
+                <input class="star star-4" id="star-4"  value=4 type="radio" name="star"/>
+                <label class="star star-4" for="star-4"></label>
+                <input class="star star-3" id="star-3"  value=3 type="radio" name="star"/>
+                <label class="star star-3" for="star-3"></label>
+                <input class="star star-2" id="star-2"  value=2  type="radio" name="star"/>
+                <label class="star star-2" for="star-2"></label>
+                <input class="star star-1" id="star-1"  value=1 type="radio" name="star"/>
+                <label class="star star-1" for="star-1"></label>
+            </div>
+            <br>
+            <div class="mb-3">
+                <label for="validationTextarea" style="color: black;font-size:larger;">Comment</label>
+                <textarea class="form-control is-invalid" id="validationTextarea" name= "comment" placeholder="comment" pattern=".*\\S.*[a-zA-z0-9 ]" title = "minimum 10 characters are required" minlength="10" required></textarea>
+                <br>
+                <button type="submit" class="btn btn-primary btn-lg"id = 'revsubbtn'>Submit</button>
+            </div>
+            <br>
+        </div>
         </div>
       </div>
+
 </div>
 </body>
 </html>
