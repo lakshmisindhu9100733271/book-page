@@ -1,0 +1,103 @@
+
+* {
+    box-sizing: border-box;
+    font-family: Arial, Helvetica, sans-serif;
+    color:black;
+    }
+
+div {
+  background-image: url('booksearch.png');
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 100% auto;
+}
+/* Column container */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* Create two unequal columns that sits next to each other */
+/* Sidebar/left column */
+.side {
+  flex: 50%;
+  padding: 10px;
+  padding-left: 50px;
+  background-origin: padding-box;
+}
+
+/* Main column */
+.main {
+  flex: 50%;
+  padding: 20px;
+}
+
+/* Responsive layout - when the screen is less than 700px wide, make the two columns stack on top of each other instead of next to each other */
+@media screen and (max-width: 700px) {
+  .row, .navbar {
+    flex-direction: column;
+  }
+}
+.container {
+    padding: 10px;
+}
+
+.Searchbox {
+  padding: 30px;
+  text-align: center;
+}
+/* Full-width input fields */
+input[type=text] {
+    width: 30%;
+    padding: 15px;
+    margin: 5px 0 22px 0;
+    display: inline-block;
+    border: none;
+    color: black;
+    background: white;
+}
+.radio{
+    margin: 5px 0 22px 0;
+}
+button {
+  background-color: #4CAF50;
+  color: white;
+  padding: 15px 20px;
+  margin: 8px 0;
+  border: none;
+  cursor: pointer;
+  width: 10%;
+}
+
+button:hover {
+opacity: 0.8;
+}
+
+.linkbutton {
+width: auto;
+padding: 10px 18px;
+}
+.alert {
+width: 40%;
+padding: 20px;
+background-color: #a04b45;
+color: white;
+font-style: italic;
+}
+.alert.suggestion {background-color: #4CAF50;}
+.closebtn {
+margin-left: 15px;
+color: white;
+font-weight: bold;
+float: right;
+font-size: 22px;
+line-height: 20px;
+cursor: pointer;
+transition: 0.3s;
+background-color: #4CAF50;
+}
+
+.closebtn:hover {
+color: black;
+background-color: #4CAF50;
+}

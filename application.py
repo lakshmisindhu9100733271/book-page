@@ -1,15 +1,15 @@
 import os
 
-from flask import Flask, session,render_template,request,session,redirect,url_for
+from flask import Flask, session,render_template,request,session,redirect,url_for,jsonify
 from flask_session import Session
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from flask_sqlalchemy import SQLAlchemy
-from registerdb import Users, db
-from importdb import Books
-from details import Detail
+from registerdb import Users,db
+from importdb import Books,db
+from details import Detail,db
+import json
 from operator import and_
-from flask.helpers import flash
 
 app = Flask(__name__)
 
@@ -40,24 +40,21 @@ def index():
 
 @app.route("/register", methods=["POST","GET"])
 def register():
-    if request.method == "POST":
+    if request.method == 'POST':
+        print('hai')
         username = request.form.get("username")
         password = request.form.get("password")
-        email = request.form.get("email")
-        gender = request.form.get("name")
-        new_user=Users(username = username, password = password, email = email, gender = gender)
+        gender = request.form.get("gender")
+        new_user=Users(username = username, password = password, gender = gender)
         try:
             db.session.add(new_user)
             db.session.commit()
-            print(username, password, email, gender)
-            message = "successfully registered"
-            return render_template("success.html",message = message)
+            print(username, password,gender)
+            return jsonify({"success":True})
         except:
-            msg = "sorry your credentials are wrong. please try again"
-            return render_template("registration.html",message = msg)
-    msg = "Please fill in this form to create an account."
-    return render_template("registration.html",message = msg)
+            return jsonify({"success":False})
 
+    return render_template('registration.html')
 @app.route("/login",methods=["POST","GET"])
 def login():
     if request.method == "POST":
@@ -88,79 +85,78 @@ def admin():
 def home():
     if session["email"] is None:
         return redirect(url_for("register"))
-    message = session["email"]
-    return render_template("homepage.html",username=message)
+    uname = session["email"]
+    return render_template("homepage.html",username=uname)
 
-@app.route("/search",methods=["POST","GET"])
+@app.route("/api/search",methods=["POST","GET"])
 def search():
     if session["email"] is None:
         return  redirect(url_for("login"))
     if request.method == "POST":
         text = request.form.get("name")
         option = request.form.get("option")
-        print(text)
-        if option == "title":
-            print(option)
-            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("title") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
-        elif option == "isbn":
-            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("isbn") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
-        elif option == "author":
-            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("author") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
+        books_list =  db.session.query(Books.title,Books.isbn).order_by(Books.year.desc()).filter(getattr(Books, option).ilike('%'+text+'%')).all()
+        # books_list = [value for value, in books]
+        print(books_list)
+        if len(books_list) == 0:
+            return jsonify({'success':True,'notfound':True})
         else:
-
-            # if text.isnumeric():
-            #     message = "Sorry wrong input.Please enter correct year"
-            #     return render_template("homepage.html",message = message)
-            #books=Books.query.filter(Books.year.like(text)).all()
-            books = db.session.execute('SELECT * FROM "Books" WHERE UPPER("year") LIKE UPPER(:text)',{"text":'%'+text+'%'}).fetchall()
-
-        print(books)
-        books.sort(key=lambda x: x.year, reverse=True)
-        if len(books) == 0:
-            message = "Sorry no books are available on your input"
-            return render_template("homepage.html",message = "alert")
-        else:
-            return render_template("booksdisplay.html",books=books)
+            return jsonify({'success':True,'notfound':False, 'books':books_list})
     return redirect(url_for("home"))
+
+@app.route('/api/bookdetails',methods=['POST'])
+def bookdetails():
+    num = request.form.get('isbn')
+    search = "%{}%".format(num)
+    print(search)
+    rev = Books.query.filter(Books.isbn.like(search)).all()
+    bookdetails = {
+        'isbn':rev[0].isbn,
+        'title':rev[0].title,
+        'year':rev[0].year,
+        'author':rev[0].author
+    }
+    return jsonify({'success':True,'bookdetail':bookdetails})
+
+@app.route('/api/submitreview',methods=['POST'])
+def submit_review():
+    num = request.form.get('isbn')
+    rating = request.form.get('rating')
+    comment = request.form.get('comment')
+    print("isbn",num)
+    print('rating',rating)
+    print('commnet',comment)
+    data=Detail.query.filter(and_(Detail.isbn==num, Detail.email==session["email"])).first()
+    print('data',data)
+    if data != None and rating is None :
+        print('unsucessful1')
+        reviewdetails = {
+            'user':data.email,
+            'isbn':data.isbn,
+            'rating':data.rating,
+            'review':data.review,
+        }
+        return jsonify({'review':True,'getreview':reviewdetails})
+
+    elif data is None and rating is None:
+        print('unsucessful2')
+        return jsonify({'review':False})
+    else:
+        rcon = Detail(isbn = num,email=session['email'],rating=rating,review=comment)
+        db.session.add(rcon)
+        db.session.commit()
+        data=Detail.query.filter(and_(Detail.isbn==num, Detail.email==session["email"])).first()
+        reviewdetails = {
+                'user':data.email,
+                'isbn':data.isbn,
+                'rating':data.rating,
+                'review':data.review,
+        }
+        return jsonify({'review':True,'getreview':reviewdetails})
+
 
 @app.route("/logout")
 def logout():
-    if not session["Admin"] is None:
-        session["Admin"] = None
     session["email"] = None
     message = "You have sucessfully logged out"
     return redirect(url_for("register"))
-@app.route("/review/<isbn>",methods=["POST","GET"])
-def review(isbn):
-    if (request.method == "POST"):
-        print('entered')
-        rate = request.form['star']
-        print(rate)
-        rev = request.form['comment']
-        print(rev)
-        data=Detail.query.filter(and_(Detail.isbn==isbn, Detail.email==session["email"])).first()
-        print(data)
-        if data is None:
-            print ('ok')
-            rcon = Detail(isbn = isbn,email=session['email'],rating=rate,review=rev)
-            db.session.add(rcon)
-            db.session.commit()
-            return redirect(url_for("bookpage",isbn=isbn))
-        else:
-            flash("You are have already given the review")
-            return redirect(url_for("bookpage",isbn=isbn))
-    return render_template("review.html", isbn=isbn)
-
-@app.route("/bookpage/<isbn>",methods=["POST","GET"])
-def bookpage(isbn): 
-    print(isbn)
-    if  (request.method == "GET"):  
-        num = Books.query.get(isbn)
-        search = "%{}%".format(isbn)
-        rev = Detail.query.filter(Detail.isbn.like(search))
-        username=session["email"]
-        if num is None:
-            message="no book is found"
-            return render_template("bookpage.html",meassage=message)
-        return render_template("bookpage.html",details= rev, book = num,username=username)
-    return render_template("bookpage.html")
